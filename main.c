@@ -11,15 +11,22 @@
 #define GLSL_VERSION            100
 #endif
 
-#define N_PARTICLES 50000
+#define N_PARTICLES 10000
 
 #define RAYGUI_IMPLEMENTATION
 #define RAYGUI_SUPPORT_ICONS
-#include "raygui.h"
+#include "extras/raygui.h"
+
+typedef struct particle_options {
+    float sensor_angle;
+    float sensor_distance;
+    float speed;
+}particle_options_t;
 
 int main()
 {
     srand(time(0));
+
 //    SetTraceLogLevel(LOG_FATAL);
     particle_t particle = {
             .position = {.x=100,.y=100},
@@ -38,7 +45,11 @@ int main()
             .speed = 10,
             .deposit_amount = 0.8
     };
-
+    particle_options_t particle_options = {
+            .sensor_angle = 20,
+            .sensor_distance = 10,
+            .speed = 5
+    };
     particle_t* particles = (particle_t*)malloc(N_PARTICLES*sizeof(particle_t));
 
     // Initialization
@@ -133,9 +144,40 @@ int main()
         DrawTextureRec(trails.texture, (Rectangle) { 0, 0, (float)trails.texture.width, (float)-trails.texture.height }, (Vector2) { 0, 0 }, WHITE);
         EndShaderMode();
         DrawFPS(10,30);
+
+        GuiGroupBox((Rectangle){ 25, 310, 125, 150 }, "STATES");
+//        GuiValueBox((Rectangle){ 1700, 175, 125, 30 }, "Sensor Angle", &particle_options.sensor_angle, 0, 359, true);
+        particle_options.sensor_angle = GuiSlider((Rectangle){ 1600, 400, 200, 20 }, "Sensor Angle", TextFormat("%2.2f", (float)particle_options.sensor_angle), particle_options.sensor_angle, 0, 359);
+        particle_options.sensor_distance = GuiSlider((Rectangle){ 1600, 440, 200, 20 }, "Sensor Distance", TextFormat("%2.2f", (float)particle_options.sensor_distance), particle_options.sensor_distance, 0, 30);
+        particle_options.speed = GuiSlider((Rectangle){ 1600, 500, 200, 20 }, "Speed", TextFormat("%2.2f", (float)particle_options.speed), particle_options.speed, 0, 30);
+
         EndDrawing();
+
         UnloadImage(img_data);
 
+        if (particles[0].sensor_angle != particle_options.sensor_angle) {
+            printf("UPDATE sensor_angle\n");
+            // valore modificato, aggiornare tutte le particelle
+            for (int i = 0; i < N_PARTICLES; ++i) {
+                particles[i].sensor_angle = particle_options.sensor_angle;
+            }
+        }
+
+        if (particles[0].sensor_distance != particle_options.sensor_distance) {
+            printf("UPDATE sensor_distance\n");
+            // valore modificato, aggiornare tutte le particelle
+            for (int i = 0; i < N_PARTICLES; ++i) {
+                particles[i].sensor_distance = particle_options.sensor_distance;
+            }
+        }
+
+        if (particles[0].speed != particle_options.speed) {
+            printf("UPDATE speed\n");
+            // valore modificato, aggiornare tutte le particelle
+            for (int i = 0; i < N_PARTICLES; ++i) {
+                particles[i].speed = particle_options.speed;
+            }
+        }
         //----------------------------------------------------------------------------------
     }
 
